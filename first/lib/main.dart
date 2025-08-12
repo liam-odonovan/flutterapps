@@ -42,6 +42,11 @@ class MyAppState extends ChangeNotifier {
     }
     notifyListeners();
   }
+
+  void unlike(pair) {
+    favorites.remove(pair);
+    notifyListeners();
+  }
 }
 
 class MyHomePage extends StatefulWidget {
@@ -158,8 +163,25 @@ class FavPage extends StatelessWidget {
   Widget build(BuildContext context) {
     var appState = context.watch<MyAppState>();
     var favList = appState.favorites;
+    var favListCard = favList.map((fav) {
+      return Card(child: ListTile(title: Text(fav.asLowerCase), 
+                    trailing: ElevatedButton.icon(
+                      onPressed: () {
+                        appState.unlike(fav);
+                      },
+                      icon: Icon(Icons.favorite),
+                      label: Text('unLike'),
+                      ),
+                    ),
+      );
+    }).toList();
 
-    
+    return Scaffold(
+      appBar: AppBar(title: Text('Favorites')),
+      body: ListView(
+        children: favListCard
+      ),
+    );
   }
 }
 
