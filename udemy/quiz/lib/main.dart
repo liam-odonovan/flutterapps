@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'answer_button.dart';
+import 'results_bar.dart';
 import 'package:quiz/data/questions.dart';
 import 'package:quiz/models/quiz_questions.dart';
 import 'dart:math';
@@ -175,7 +176,7 @@ class _QuizState extends State<Quiz> {
   String activeScreen = 'start-screen';
   List<QuizQuestion> correctList = [];
   List<QuizQuestion> wrongList = [];
-  List<(QuizQuestion,String)> results = [];
+  List<({QuizQuestion q, String a, bool b})> results = [];
   
   late List<QuizQuestion> questionsCopy;
 
@@ -200,14 +201,22 @@ class _QuizState extends State<Quiz> {
     currentQuestion = questionsCopy[randomIndex];
   }
 
-  void answerQuestion(bool isCorrect, String selectedAnswer) {
+  // void answerQuestion(bool isCorrect, String selectedAnswer) {
+  //   setState(() {
+  //     if (isCorrect) {
+  //       correctList.add(currentQuestion);
+  //     } else {
+  //       wrongList.add(currentQuestion);
+  //     }
+  //     results.add((currentQuestion,selectedAnswer));
+  //     questionsCopy.remove(currentQuestion);
+  //     _setNextQuestion();
+  //   });
+  // }
+
+   void answerQuestion(bool isCorrect, String selectedAnswer) {
     setState(() {
-      if (isCorrect) {
-        correctList.add(currentQuestion);
-      } else {
-        wrongList.add(currentQuestion);
-      }
-      results.add((currentQuestion,selectedAnswer));
+      results.add((q: currentQuestion, a: selectedAnswer, b: isCorrect));
       questionsCopy.remove(currentQuestion);
       _setNextQuestion();
     });
@@ -295,47 +304,76 @@ class _QuestionPageState extends State<QuestionPage> {
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      width: double.infinity,
-      child: GradientContainer(
-        child: Container(
-          margin: const EdgeInsets.all(40),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Text(widget.currentQuestion.text,
-                style: GoogleFonts.lato(
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                  color: const Color.fromARGB(255, 246, 222, 255),
+    final random = Random();
+    final answersCopy = List<String>.from(widget.currentQuestion.answers);
+    final randomizedAnswerButtonList = <AnswerButton>[];
+
+    while (answersCopy.isNotEmpty) {
+      final index = random.nextInt(answersCopy.length);
+      final answer = answersCopy[index];
+
+      randomizedAnswerButtonList.add(
+        AnswerButton(
+          answer,
+          () => widget.answerQuestion(
+            answer == widget.currentQuestion.answers[0],
+            answer,
+          ),
+        ),
+      );
+      answersCopy.removeAt(index);
+    }
+
+    return Scaffold(
+      body: SizedBox(
+        width: double.infinity,
+        child: GradientContainer(
+          child: Container(
+            margin: const EdgeInsets.all(40),
+            child: Column(
+              spacing: 10,
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Text(widget.currentQuestion.text,
+                  textAlign: TextAlign.center,
+                  style: GoogleFonts.lato(
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                    color: const Color.fromARGB(255, 246, 222, 255),
+                  ),
                 ),
-                textAlign: TextAlign.center),
-              SizedBox(height:30),
-              ...List.generate(
-                widget.currentQuestion.answers.length,
-                (i) => AnswerButton(
-                  widget.currentQuestion.answers[i],
-                  () => widget.answerQuestion(
-                    i == 0,
-                    widget.currentQuestion.answers[i],
-                    ),
-                ),
-              )
-          
-              // ...[
-              //   for (var i = 0; i < currentQuestion.answers.length; i++) 
-              //     AnswerButton(
-              //       currentQuestion.answers[i], 
-              //       i == 0 ? () => correct : () => wrong
-              //     ),
-              // ],
-          
-              // ...currentQuestion.answers.asMap()
-              // .map((i, q) => MapEntry(i, AnswerButton(q, i == 0 ? () => correct : () => wrong)))
-              // .values,
-              
-            ],
+                SizedBox(height:30),
+                ...randomizedAnswerButtonList,
+
+                // ...List.generate(
+                //   widget.currentQuestion.answers.length,
+                //   (i) => AnswerButton(
+                //     widget.currentQuestion.answers[i],
+                //     () => widget.answerQuestion(
+                //       i == 0,
+                //       widget.currentQuestion.answers[i],
+                //       ),
+                //   ),
+                // ),
+            
+                // ...[
+                //   for (var i = 0; i < widget.currentQuestion.answers.length; i++) 
+                //     AnswerButton(
+                //     widget.currentQuestion.answers[i],
+                //     () => widget.answerQuestion(
+                //       i == 0,
+                //       widget.currentQuestion.answers[i],
+                //       ),
+                //   ),
+                // ],
+            
+                // ...currentQuestion.answers.asMap()
+                // .map((i, q) => MapEntry(i, AnswerButton(q, i == 0 ? () => correct : () => wrong)))
+                // .values,
+                
+              ],
+            ),
           ),
         ),
       ),
@@ -349,31 +387,45 @@ class ResultsPage extends StatefulWidget {
     required this.results,
   });
 
-  final List<(QuizQuestion, String)> results;
+  final List<({QuizQuestion q, String a, bool b})> results;
 
   @override
   State<ResultsPage> createState() => _ResultsPageState();
 }
 
 class _ResultsPageState extends State<ResultsPage> {
+  final List<ResultBar> resultBarList = [];
+  
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      width: double.infinity,
-      child: GradientContainer(
-        child: Container(
-          margin: const EdgeInsets.all(40),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Text('Results',
-                style: TextStyle(color: Colors.white),
-                // textAlign: TextAlign.center
-              ),
-              SizedBox(height:30),
-            ],
+    return Material(
+      child: SizedBox(
+        width: double.infinity,
+        child: GradientContainer(
+          child: Container(
+            margin: const EdgeInsets.all(40),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Text('Results',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 36,
+                    ),
+                  textAlign: TextAlign.center,
+                ),
+                SizedBox(height:5),
+                ...List.generate(
+                  widget.results.length,
+                  (i) => ResultBar(
+                    qNum: i + 1,
+                    result: widget.results[i]
+                  )                    
+                ),                
+              ],
+            ),
           ),
         ),
       ),
