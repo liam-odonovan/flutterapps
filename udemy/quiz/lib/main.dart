@@ -174,6 +174,7 @@ class Quiz extends StatefulWidget {
 
 class _QuizState extends State<Quiz> {
   String activeScreen = 'start-screen';
+  int numCorrect = 0;
   List<QuizQuestion> correctList = [];
   List<QuizQuestion> wrongList = [];
   List<({QuizQuestion q, String a, bool b})> results = [];
@@ -216,6 +217,7 @@ class _QuizState extends State<Quiz> {
 
    void answerQuestion(bool isCorrect, String selectedAnswer) {
     setState(() {
+      if (isCorrect) {numCorrect++;}
       results.add((q: currentQuestion, a: selectedAnswer, b: isCorrect));
       questionsCopy.remove(currentQuestion);
       _setNextQuestion();
@@ -258,7 +260,7 @@ class _QuizState extends State<Quiz> {
         answerQuestion: answerQuestion,
       );
     } else if (activeScreen == 'results-screen') {
-      screenWidget = ResultsPage(results: results);
+      screenWidget = ResultsPage(numCorrect: numCorrect, results: results);
     }
 
     return MaterialApp(
@@ -344,7 +346,7 @@ class _QuestionPageState extends State<QuestionPage> {
                   ),
                 ),
                 SizedBox(height:30),
-                ...randomizedAnswerButtonList,
+                // ...randomizedAnswerButtonList,
 
                 // ...List.generate(
                 //   widget.currentQuestion.answers.length,
@@ -358,14 +360,14 @@ class _QuestionPageState extends State<QuestionPage> {
                 // ),
             
                 // ...[
-                //   for (var i = 0; i < widget.currentQuestion.answers.length; i++) 
-                //     AnswerButton(
-                //     widget.currentQuestion.answers[i],
-                //     () => widget.answerQuestion(
-                //       i == 0,
-                //       widget.currentQuestion.answers[i],
-                //       ),
-                //   ),
+                for (var i = 0; i < widget.currentQuestion.answers.length; i++) 
+                  AnswerButton(
+                  widget.currentQuestion.answers[i],
+                  () => widget.answerQuestion(
+                    i == 0,
+                    widget.currentQuestion.answers[i],
+                    ),
+                ),
                 // ],
             
                 // ...currentQuestion.answers.asMap()
@@ -384,9 +386,11 @@ class _QuestionPageState extends State<QuestionPage> {
 class ResultsPage extends StatefulWidget {
   const ResultsPage({
     super.key,
+    required this.numCorrect,
     required this.results,
   });
 
+  final int numCorrect;
   final List<({QuizQuestion q, String a, bool b})> results;
 
   @override
@@ -410,11 +414,23 @@ class _ResultsPageState extends State<ResultsPage> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 Text('Results',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 36,
-                    ),
                   textAlign: TextAlign.center,
+                  style: GoogleFonts.lato(
+                    textStyle: TextStyle(
+                      decoration: TextDecoration.underline,
+                      color: Colors.white,
+                      fontSize: 36,
+                    ),
+                  ),
+                ),
+                Text('You got ${widget.numCorrect}/${widget.results.length} correct.',
+                  textAlign: TextAlign.center,
+                  style: GoogleFonts.lato(
+                    textStyle: TextStyle(
+                      color: Colors.white,
+                      fontSize: 30,
+                    ),
+                  ),
                 ),
                 SizedBox(height:5),
                 ...List.generate(
