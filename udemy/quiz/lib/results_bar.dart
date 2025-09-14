@@ -31,31 +31,69 @@ class ResultBar extends StatelessWidget {
             ),
           ),
         ),
-        SizedBox(
-          width: 200,
-          height: 150,
-          child: Text(result.q.text,
-            style: GoogleFonts.lato(
-              textStyle: TextStyle(
-                color: Colors.white,
-                fontSize: 22,
+        Column(
+          children: [
+            SizedBox(
+              width: 200,
+              height: 150,
+              child: Text(result.q.text,
+                style: GoogleFonts.lato(
+                  textStyle: TextStyle(
+                    color: Colors.white,
+                    fontSize: 22,
+                  ),
+                ),
               ),
             ),
-          ),
-        ),
-        Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            Text('Your Answer',
-              style: GoogleFonts.lato(),
-              selectionColor: Colors.white,
+            Row(
+              children: [
+                AnswerColumn(header: 'Your Answer', answer: result.a,),
+                AnswerColumn(header: 'Correct Answer', answer: result.q.answers[0]),
+              ],
             ),
-            Text(result.a)
           ],
         ),
       ],
     );
   }
 
+}
+
+class AnswerColumn extends StatelessWidget {
+  const AnswerColumn({
+    super.key,
+    required this.answer,
+    required this.header,
+
+  });
+
+  final String answer;
+  final String header;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        Text(header,
+          style: GoogleFonts.lato(
+            textStyle: TextStyle(
+              decoration: TextDecoration.underline,
+              color: Colors.white,
+              fontSize: 26
+            ),
+          ),
+        ),
+        Text(answer,
+          style: GoogleFonts.lato(
+            textStyle: TextStyle(
+              color: Colors.white,
+              fontSize: 18
+            ),
+          ),
+        ),
+      ],
+    );
+  }
 }
