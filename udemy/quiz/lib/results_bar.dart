@@ -72,28 +72,32 @@ class AnswerColumn extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: [
-        Text(header,
-          style: GoogleFonts.lato(
-            textStyle: TextStyle(
-              decoration: TextDecoration.underline,
-              color: Colors.white,
-              fontSize: 26
+    return Container(
+      padding: const EdgeInsets.all(8),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Text(header,
+            style: GoogleFonts.lato(
+              textStyle: TextStyle(
+                decoration: TextDecoration.underline,
+                decorationColor: Colors.white,
+                color: Colors.white,
+                fontSize: 26
+              ),
             ),
           ),
-        ),
-        Text(answer,
-          style: GoogleFonts.lato(
-            textStyle: TextStyle(
-              color: Colors.white,
-              fontSize: 18
+          Text(answer,
+            style: GoogleFonts.lato(
+              textStyle: TextStyle(
+                color: Colors.white,
+                fontSize: 18
+              ),
             ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }

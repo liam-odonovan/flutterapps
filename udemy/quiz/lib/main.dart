@@ -243,10 +243,25 @@ class _QuizState extends State<Quiz> {
   //     }
   //   });
   // }
+  void clear() {
+    correctList = [];
+    wrongList = [];
+    results = [];
+    questionsCopy = List.of(questions);
+    _setNextQuestion();
+  }
 
   void startQuiz() {
     setState(() {
       activeScreen = 'question-screen';
+      clear();
+    });
+  }
+
+  void goHome() {
+    setState(() {
+      activeScreen = 'start-screen';
+      clear();
     });
   }
 
@@ -260,13 +275,22 @@ class _QuizState extends State<Quiz> {
         answerQuestion: answerQuestion,
       );
     } else if (activeScreen == 'results-screen') {
-      screenWidget = ResultsPage(numCorrect: numCorrect, results: results);
+      screenWidget = ResultsPage(numCorrect: numCorrect, results: results, restartFunc: startQuiz, homeFunc: goHome);
     }
 
     return MaterialApp(
       title: 'Quiz App',
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
+        outlinedButtonTheme: OutlinedButtonThemeData(
+          style: ButtonStyle(
+            shape: WidgetStateProperty.all<RoundedRectangleBorder>(
+              RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(6),
+              ),
+            ),
+          ),
+        ),
       ),
       home: screenWidget,
     );
@@ -346,7 +370,7 @@ class _QuestionPageState extends State<QuestionPage> {
                   ),
                 ),
                 SizedBox(height:30),
-                // ...randomizedAnswerButtonList,
+                ...randomizedAnswerButtonList,
 
                 // ...List.generate(
                 //   widget.currentQuestion.answers.length,
@@ -360,14 +384,14 @@ class _QuestionPageState extends State<QuestionPage> {
                 // ),
             
                 // ...[
-                for (var i = 0; i < widget.currentQuestion.answers.length; i++) 
-                  AnswerButton(
-                  widget.currentQuestion.answers[i],
-                  () => widget.answerQuestion(
-                    i == 0,
-                    widget.currentQuestion.answers[i],
-                    ),
-                ),
+                // for (var i = 0; i < widget.currentQuestion.answers.length; i++) 
+                //   AnswerButton(
+                //     widget.currentQuestion.answers[i],
+                //     () => widget.answerQuestion(
+                //       i == 0,
+                //       widget.currentQuestion.answers[i],
+                //     ),
+                //   ), 
                 // ],
             
                 // ...currentQuestion.answers.asMap()
@@ -388,18 +412,29 @@ class ResultsPage extends StatefulWidget {
     super.key,
     required this.numCorrect,
     required this.results,
+    required this.homeFunc,
+    required this.restartFunc,
   });
 
   final int numCorrect;
   final List<({QuizQuestion q, String a, bool b})> results;
+  final void Function() homeFunc;
+  final void Function() restartFunc;
 
   @override
   State<ResultsPage> createState() => _ResultsPageState();
 }
 
 class _ResultsPageState extends State<ResultsPage> {
-  final List<ResultBar> resultBarList = [];
-  
+  // final List<ResultBar> resultBarList = [];
+  // final List<ResultBar> resultBarList = 
+  //   List.generate(
+  //     widget.results.length,
+  //     (i) => ResultBar(
+  //       qNum: i + 1,
+  //       result: widget.results[i]
+  //     )                    
+  //   );           
 
   @override
   Widget build(BuildContext context) {
@@ -418,6 +453,7 @@ class _ResultsPageState extends State<ResultsPage> {
                   style: GoogleFonts.lato(
                     textStyle: TextStyle(
                       decoration: TextDecoration.underline,
+                      decorationColor: Colors.white,
                       color: Colors.white,
                       fontSize: 36,
                     ),
@@ -432,14 +468,54 @@ class _ResultsPageState extends State<ResultsPage> {
                     ),
                   ),
                 ),
-                SizedBox(height:5),
-                ...List.generate(
-                  widget.results.length,
-                  (i) => ResultBar(
-                    qNum: i + 1,
-                    result: widget.results[i]
-                  )                    
-                ),                
+                Divider(),
+                Expanded(
+                  child: ListView.separated(
+                    padding: const EdgeInsets.all(8),
+                    itemCount: widget.results.length,
+                    itemBuilder: (BuildContext context, int i) => 
+                      ResultBar(qNum: i + 1, result: widget.results[i]),
+                    separatorBuilder: (BuildContext context, int index) => Divider(),
+                  ),
+                ),
+                SizedBox(height: 10),
+                Row(
+                  children: [
+                    OutlinedButton.icon(
+                      onPressed: widget.homeFunc,
+                      style: ButtonStyle(
+                        foregroundColor: WidgetStateProperty.all(Colors.white),
+                        shape: WidgetStateProperty.all<RoundedRectangleBorder>(
+                          RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                        ),
+                      ),
+                      label: Text('Home', ),
+                      icon: Icon(Icons.home),
+                    ),
+                    OutlinedButton.icon(
+                      onPressed: widget.restartFunc,
+                      style: ButtonStyle(
+                        foregroundColor: WidgetStateProperty.all(Colors.white),
+                        shape: WidgetStateProperty.all<RoundedRectangleBorder>(
+                          RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                        ),
+                      ),
+                      label: Text('Restart Quiz',),
+                      icon: Icon(Icons.restart_alt),
+                    ),
+                  ],
+                ),
+                // ...List.generate(
+                //   widget.results.length,
+                //   (i) => ResultBar(
+                //     qNum: i + 1,
+                //     result: widget.results[i]
+                //   )                    
+                // ),           
               ],
             ),
           ),
