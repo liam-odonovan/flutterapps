@@ -4,9 +4,7 @@ import 'package:english_words/english_words.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-void main() {
-  runApp(MyApp());
-}
+void main() => runApp(const MyApp());
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
@@ -30,6 +28,7 @@ class MyApp extends StatelessWidget {
 class MyAppState extends ChangeNotifier {
   var current = WordPair.random();
   var history = <WordPair>[];
+  var textSize = 'medium';
 
   GlobalKey? historyListKey;
 
@@ -50,6 +49,21 @@ class MyAppState extends ChangeNotifier {
     } else {
       favorites.add(pair);
     }
+    notifyListeners();
+  }
+
+  void toggleSmall() {
+    textSize = 'small';
+    notifyListeners();
+  }
+
+  void toggleMedium() {
+    textSize = 'medium';
+    notifyListeners();
+  }
+
+  void toggleLarge() {
+    textSize = 'large';
     notifyListeners();
   }
 
@@ -81,6 +95,8 @@ class _MyHomePageState extends State<MyHomePage> {
       case 1:
         page = FavoritesPage();
         break;
+      case 2:
+        page = SettingsPage();
       default:
         throw UnimplementedError('no widget for $selectedIndex');
     }
@@ -115,6 +131,10 @@ class _MyHomePageState extends State<MyHomePage> {
                         icon: Icon(Icons.favorite),
                         label: 'Favorites',
                       ),
+                      BottomNavigationBarItem(
+                        icon: Icon(Icons.settings),
+                        label: 'Settings',
+                      ),
                     ],
                     currentIndex: selectedIndex,
                     onTap: (value) {
@@ -141,6 +161,10 @@ class _MyHomePageState extends State<MyHomePage> {
                         icon: Icon(Icons.favorite),
                         label: Text('Favorites'),
                       ),
+                      NavigationRailDestination(
+                        icon: Icon(Icons.settings),
+                        label: Text('Settings'),
+                      ),
                     ],
                     selectedIndex: selectedIndex,
                     onDestinationSelected: (value) {
@@ -161,6 +185,8 @@ class _MyHomePageState extends State<MyHomePage> {
 }
 
 class GeneratorPage extends StatelessWidget {
+  const GeneratorPage({super.key});
+
   @override
   Widget build(BuildContext context) {
     var appState = context.watch<MyAppState>();
@@ -220,17 +246,32 @@ class BigCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final appState = context.watch<MyAppState>();
     var theme = Theme.of(context);
-    var style = theme.textTheme.displayMedium!.copyWith(
-      color: theme.colorScheme.onPrimary,
-    );
+    TextStyle style;
+    switch (appState.textSize) {
+      case 'small':
+        style = theme.textTheme.displaySmall!.copyWith(
+          color: theme.colorScheme.onPrimary,
+        );
+      case 'medium':
+        style = theme.textTheme.displayMedium!.copyWith(
+          color: theme.colorScheme.onPrimary,
+        );
+      case 'large':
+        style = theme.textTheme.displayLarge!.copyWith(
+          color: theme.colorScheme.onPrimary,
+        );
+        break;
+      default: style = theme.textTheme.displayMedium!.copyWith(color: theme.colorScheme.onPrimary,);
+    }
 
     return Card(
       color: theme.colorScheme.primary,
       child: Padding(
         padding: const EdgeInsets.all(20),
         child: AnimatedSize(
-          duration: Duration(milliseconds: 200),
+          duration: Duration(milliseconds: 350),
           // Make sure that the compound word wraps correctly when the window
           // is too narrow.
           child: MergeSemantics(
@@ -254,6 +295,8 @@ class BigCard extends StatelessWidget {
 }
 
 class FavoritesPage extends StatelessWidget {
+  const FavoritesPage({super.key});
+
   @override
   Widget build(BuildContext context) {
     var theme = Theme.of(context);
@@ -329,6 +372,10 @@ class _HistoryListViewState extends State<HistoryListView> {
   Widget build(BuildContext context) {
     final appState = context.watch<MyAppState>();
     appState.historyListKey = _key;
+    var theme = Theme.of(context);
+    var style = theme.textTheme.bodyMedium!.copyWith(
+      color: theme.colorScheme.onPrimary,
+    );
 
     return ShaderMask(
       shaderCallback: (bounds) => _maskingGradient.createShader(bounds),
@@ -355,6 +402,7 @@ class _HistoryListViewState extends State<HistoryListView> {
                 label: Text(
                   pair.asLowerCase,
                   semanticsLabel: pair.asPascalCase,
+                  style: style,
                 ),
               ),
             ),
@@ -363,4 +411,72 @@ class _HistoryListViewState extends State<HistoryListView> {
       ),
     );
   }
+}
+
+class SettingsPage extends StatelessWidget {
+  const SettingsPage({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final appState = context.watch<MyAppState>();
+    var theme = Theme.of(context);
+
+    TextStyle style;
+    switch (appState.textSize) {
+      case 'small':
+        style = theme.textTheme.displaySmall!.copyWith(
+          color: theme.colorScheme.onPrimary,
+        );
+      case 'medium':
+        style = theme.textTheme.displayMedium!.copyWith(
+          color: theme.colorScheme.onPrimary,
+        );
+      case 'large':
+        style = theme.textTheme.displayLarge!.copyWith(
+          color: theme.colorScheme.onPrimary,
+        );
+        break;
+      default: style = theme.textTheme.displayMedium!.copyWith(color: theme.colorScheme.onPrimary,);
+    }
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Expanded(
+            flex: 3,
+            child: HistoryListView(),
+          ),
+          SizedBox(height: 10),
+          SizedBox(height: 10),
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ElevatedButton(
+                onPressed: () {
+                  appState.toggleSmall();
+                },
+                child: Text('small',
+                  style: theme.textTheme.displaySmall!.copyWith(color: theme.colorScheme.onPrimary,),
+                ),
+              ),
+              SizedBox(width: 10),
+              ElevatedButton(
+                onPressed: () {
+                  appState.toggleLarge();
+                },
+                child: Text('BIG',
+                  style: theme.textTheme.displayLarge!.copyWith(color: theme.colorScheme.onPrimary,),
+                ),
+              ),
+            ],
+          ),
+          Spacer(flex: 2),
+        ],
+      ),
+    );
+  }
+}
+
+class SettingsButton {
+
 }
